@@ -31,6 +31,20 @@ from .cleaner import (
 jikan = Jikan()
 
 
+def _clean_filename(filename: str) -> str:
+    """
+    清理文件名中的非法字符
+    处理所有操作系统都不允许的字符：
+    - Windows: \ / : * ? " < > |
+    - Linux/Unix: / \0
+    - macOS: / :
+    """
+    # 所有操作系统都不允许的字符
+    invalid_chars = r'[\\/:*?"<>|\0]'
+    # 替换为下划线
+    return re.sub(invalid_chars, '_', filename)
+
+
 class Rename:
     def __init__(self):
         self.BANGUMI_PATH = Path(cm.get_config('bangumi_path'))
@@ -380,7 +394,7 @@ class Rename:
             if movie_info:
                 first_data = movie_info['release_date']
                 first_year = first_data.split('-')[0]
-                work_path = _WORK_PATH / f'{name} ({first_year})'
+                work_path = _WORK_PATH / _clean_filename(f'{name} ({first_year})')
                 work_path.mkdir(parents=True, exist_ok=True)
                 if path.is_file():
                     self.R[path] = work_path / f'{name} - {path.name}'
@@ -432,7 +446,7 @@ class Rename:
             if tv_info:
                 first_data: str = tv_info['first_air_date']
                 first_year = first_data.split('-')[0]
-                work_path = _WORK_PATH / f'{name} ({first_year})'
+                work_path = _WORK_PATH / _clean_filename(f'{name} ({first_year})')
 
                 season_id = self.get_season_id(
                     tv_info,
